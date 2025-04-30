@@ -12,7 +12,7 @@ This repo back-tests a *static* Cont & Kukanov allocator and benchmarks it again
 ## Quick start
 
 ```bash
-python3 backtest.py        # expects l1_day.csv in the same directory`` 
+python3 backtest.py        # expects l1_day.csv in the same directory 
 ```
 Example JSON:
 ```bash
