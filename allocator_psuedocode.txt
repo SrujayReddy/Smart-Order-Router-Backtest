@@ -1,0 +1,54 @@
+# allocator_pseudocode.txt
+# Static Cont-Kukanov split across N venues (single snapshot)
+
+# Inputs
+#   order_size  – target shares to buy (e.g. 5_000)
+#   venues      – list of objects, one per venue, each with:
+#                 .ask  .ask_size  .fee  .rebate
+#   λ_over      – cost penalty per extra share bought
+#   λ_under     – cost penalty per unfilled share
+#   θ_queue     – queue-risk penalty (linear in total mis-execution)
+#
+# Outputs
+#   best_split  – list[int]  shares sent to each venue (len == N)
+#   best_cost   – float      total expected cost of that split
+
+function allocate(order_size, venues, λ_over, λ_under, θ_queue):
+    step        ← 100                    # search in 100-share chunks
+    splits      ← [[]]                   # start with an empty allocation list
+    for v in 0 .. len(venues)-1:
+        new_splits ← []
+        for alloc in splits:
+            used ← sum(alloc)
+            max_v ← min(order_size-used, venues[v].ask_size)
+            for q in 0 .. max_v step step:
+                new_splits.append(alloc + [q])
+        splits ← new_splits
+
+    best_cost  ← +∞
+    best_split ← []
+    for alloc in splits:
+        if sum(alloc) ≠ order_size: continue
+        cost ← compute_cost(alloc, venues,
+                            order_size, λ_over, λ_under, θ_queue)
+        if cost < best_cost:
+            best_cost  ← cost
+            best_split ← alloc
+    return best_split, best_cost
+
+
+function compute_cost(split, venues, order_size, λo, λu, θ):
+    executed   ← 0
+    cash_spent ← 0
+    for i in 0 .. len(venues)-1:
+        exe ← min(split[i], venues[i].ask_size)
+        executed   += exe
+        cash_spent += exe * (venues[i].ask + venues[i].fee)
+        maker_rebate ← max(split[i]-exe, 0) * venues[i].rebate
+        cash_spent  -= maker_rebate
+
+    underfill ← max(order_size-executed, 0)
+    overfill  ← max(executed-order_size, 0)
+    risk_pen  ← θ * (underfill + overfill)
+    cost_pen  ← λu * underfill + λo * overfill
+    return cash_spent + risk_pen + cost_pen
