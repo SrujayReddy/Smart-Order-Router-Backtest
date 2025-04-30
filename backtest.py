@@ -3,7 +3,7 @@
 Smart-Order-Router back-test (Cont-Kukanov static allocator).
 Produces:
   • JSON summary (stdout)
-  • results_rel.png (relative-cost plot)
+  • results.png (relative-cost plot)
 
 Only numpy, pandas, matplotlib, and the Python std-lib are used.
 """
@@ -190,5 +190,5 @@ ax.yaxis.set_major_formatter(FuncFormatter(lambda x, _: f"{x/1e3:.0f}K"))
 plt.grid(alpha=.3, ls="--")
 plt.legend(bbox_to_anchor=(1.04, 1), loc="upper left")
 plt.tight_layout()
-plt.savefig("results_rel.png")
+plt.savefig("results.png")
 
